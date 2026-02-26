@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Login</title>
+</head>
+
+<body style = "background-color: white;">
+    <style>
+        .navbar{
+            background-color: #6ea9e9;
+            padding: 15px 20px;
+            color: white;
+            font-size: 22px;
+            font-weight: bold;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+        .quote{
+            font-size: 25px;
+            display: block;
+            text-align: center;
+        }
+    </style>
+    <div class="navbar"> VipraTech      INNOVATE | BUILD | SCALE </div> 
+    <span class = "quote">  For Secure Authentication Solutions </span>
+    <h2 style="text-align: center;  margin-top:60px;">Login with OTP
+
+    </h2>
+    <div style="
+        background:rgb(138, 180, 235);
+        margin: 100px auto;
+        align-items: center;
+        padding:25px;
+        width:300px;
+        border-radius:8px;
+        box-shadow:0px 4px 10px rgba(0,0,0,0.2);
+        text-align:center;
+    "> 
+
+    <div>
+        <input type="text" id="phone_number" placeholder="Enter Phone Number">
+        <button onclick="sendOTP()" style="background-color: #052a52;
+        color: azure;
+        padding: 6px 14 px; 
+        cursor: pointer;">Send OTP</button>
+    </div>
+
+    <div style="margin-top: 10px;">
+        <input type="text" id="otp" placeholder="Enter OTP">
+        <button onclick="verifyOTP()" style="background-color: #052a52;
+        color: azure;
+        padding:6px 14 px; 
+        cursor: pointer;">Verify OTP</button>
+    </div>
+
+    <div id="message" style="margin-top: 20px; font-weight: bold;"></div>
+</div>
+
+    <script>
+        async function sendOTP() {
+            const phone = document.getElementById('phone_number').value;
+            const messageBox = document.getElementById('message');
+
+            try {
+                const response = await fetch('/api/otp/send/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ phone_number: phone })
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    messageBox.innerText = "OTP sent successfully!";
+                    messageBox.style.color = "green";
+                    loadHistory(phone);
+                } else {
+                    messageBox.innerText = data.error || "Failed to send OTP.";
+                    messageBox.style.color = "red";
+                }
+            } catch (error) {
+                messageBox.innerText = "An error occurred.";
+                messageBox.style.color = "red";
+                loadHistory(phone)
+            }
+        }
+
+        async function verifyOTP() {
+            const phone = document.getElementById('phone_number').value;
+            const otp = document.getElementById('otp').value;
+            const messageBox = document.getElementById('message');
+
+            try {
+                const response = await fetch('/api/otp/verify/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        phone_number: phone,
+                        otp_code: otp
+                    })
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    messageBox.innerText = "Login successful!";
+                    messageBox.style.color = "green";
+                    loadHistory(phone);
+                } else {
+                    messageBox.innerText = data.error || "Invalid OTP.";
+                    messageBox.style.color = "red";
+                }
+            } catch (error) {
+                messageBox.innerText = "An error occurred.";
+                messageBox.style.color = "red";
+            }
+        }
+    </script>
+    <div id="history"></div>
+    <script>
+async function loadHistory(phone) {
+    const response = await fetch(`/api/login-history/${phone}/`);
+    const data = await response.json();
+
+    let html = "<h3>Recent Logins</h3><ul>";
+    data.history.forEach(item => {
+        html += `<li>${item.login_time} - ${item.status}</li>`;
+    });
+    html += "</ul>";
+
+    document.getElementById("history").innerHTML = html;
+}
+</script>
+</body>
+
+</html>
